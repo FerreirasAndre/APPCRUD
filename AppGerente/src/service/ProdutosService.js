@@ -1,6 +1,6 @@
 // src/services/produtosService.js
 import {
-  produtosCollection,
+  collection,
   addDoc,
   doc,
   getDoc,
@@ -11,10 +11,11 @@ import {
   updateDoc,
   deleteDoc,
   serverTimestamp,
-  db
-} from "./firebaseConnections";
-import { collection } from "firebase/firestore";
 
+} from "firebase/firestore";
+
+const produtosCollection = collection(db, "produtos");
+import { db } from "./firebaseConnections";
 // criar
 export const criarProduto = async (produto) => {
   const payload = {

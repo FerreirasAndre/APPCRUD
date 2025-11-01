@@ -1,16 +1,29 @@
-import React, { useContext } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
+import React, { useContext, useState, useEffect  } from "react";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
 import {useNavigation} from "@react-navigation/native"
+import {subscribeProdutos} from "../service/ProdutosService";
 
-import { ProdutosContext } from "../components/ProdutosContext";
 
 export default function ListaScreen() {
-  const {listaDeProdutos} = useContext(ProdutosContext);
   const navigation = useNavigation();
+  const [produtos, setProdutos] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = subscribeProdutos((itens) => {
+      setProdutos(itens); //atualiza o estado do componente com os novos dados.
+      setLoading(false); //indica que os dados foram carregados.
+    }, (err) => {
+      console.error(err);
+      setLoading(false);
+    });
+
+    return () => unsubscribe(); // limpar listener ao desmontar
+  }, []);
 
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.itemContainer}
-    onPress={()=>{navigation.navigate('Detalhes', {produto:item}); }}
+    onPress={()=>{navigation.navigate('Detalhes', {produto:item.id}); }}
     >
       <Text style={styles.produto}>Produto: {item.nome}</Text>
       <Text style={styles.precoProduto}>Preço: R$ {item.preco.toFixed(2)}</Text>
@@ -18,13 +31,15 @@ export default function ListaScreen() {
     </TouchableOpacity>
   );
 
+  //Renderização condicional
+  if (loading) return <ActivityIndicator style={{flex:1}} size="large" />; 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Meus Produtos</Text>
 
-      {listaDeProdutos.length > 0 ? (
+      {produtos.length > 0 ? (
         <FlatList
-          data={listaDeProdutos}
+          data={produtos}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
         />
